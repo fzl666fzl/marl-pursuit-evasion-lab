@@ -1,0 +1,33 @@
+experiment_name: dqn_curriculum_team_reward
+seed: 0
+output_dir: runs
+total_episodes: 3000
+
+env:
+  num_good: 1
+  num_adversaries: 3
+  num_obstacles: 2
+  continuous_actions: false
+  max_cycles: 50
+  terminate_on_success: true
+
+dqn:
+  hidden_sizes: [128, 128]
+  learning_rate: 0.001
+  gamma: 0.95
+
+training:
+  batch_size: 64
+  buffer_capacity: 50000
+  min_buffer_size: 1000
+  target_update_interval: 500
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+  epsilon_decay_episodes: 2500
+  team_reward_weight: 0.3
+  curriculum: true
+
+evaluation:
+  eval_interval: 250
+  eval_episodes: 10
+  seeds: [0, 1, 2, 3, 4]

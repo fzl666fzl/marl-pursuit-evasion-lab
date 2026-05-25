@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marl-pursuit-evasion-lab"
+version = "0.1.0"
+description = "Lightweight reproducible MARL pursuit-evasion lab on MPE2 simple_tag_v3."
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+  "mpe2>=1.1,<2",
+  "torch>=2.9",
+  "numpy",
+  "pandas",
+  "matplotlib",
+  "pyyaml",
+  "imageio",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
