@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from pursuit_lab.metrics import summarize_episodes
+import csv
+from pathlib import Path
+
+from pursuit_lab.metrics import append_csv_row, summarize_episodes
 from pursuit_lab.rewards import mix_team_rewards
 
 
@@ -29,3 +32,19 @@ def test_eval_summary_uses_raw_episode_rewards() -> None:
     assert summary["success_episode_count"] == 1
     assert summary["mean_steps_to_capture"] == 7.0
     assert summary["mean_episode_reward"] == 1.5
+
+
+def test_append_csv_row_writes_header_once_and_appends_rows(tmp_path: Path) -> None:
+    target = tmp_path / "metrics.csv"
+    fields = ["episode", "reward", "eval_capture_rate"]
+
+    append_csv_row({"episode": 1, "reward": 3.0}, target, fields=fields)
+    append_csv_row({"episode": 2, "reward": 5.0, "eval_capture_rate": 0.4}, target, fields=fields)
+
+    with target.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert rows == [
+        {"episode": "1", "reward": "3.0", "eval_capture_rate": ""},
+        {"episode": "2", "reward": "5.0", "eval_capture_rate": "0.4"},
+    ]

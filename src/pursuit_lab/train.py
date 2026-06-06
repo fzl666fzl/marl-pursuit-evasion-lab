@@ -13,11 +13,26 @@ from pursuit_lab.constants import PURSUER_AGENTS
 from pursuit_lab.dqn import DQN, linear_epsilon, optimize_dqn, select_epsilon_greedy_action
 from pursuit_lab.envs import apply_curriculum_stage, curriculum_stage_for_episode, make_env
 from pursuit_lab.evaluation import run_eval_episodes
-from pursuit_lab.metrics import summarize_episodes, write_csv, write_json
+from pursuit_lab.metrics import append_csv_row, summarize_episodes, write_csv, write_json
 from pursuit_lab.mappo import train_mappo
 from pursuit_lab.replay import ReplayBuffer
 from pursuit_lab.rewards import mix_team_rewards
 from pursuit_lab.utils import ensure_dir, seed_everything
+
+DQN_METRIC_FIELDS = [
+    "episode",
+    "epsilon",
+    "episode_reward",
+    "captured",
+    "steps",
+    "loss",
+    "curriculum_stage",
+    "eval_episodes",
+    "eval_capture_rate",
+    "eval_mean_episode_reward",
+    "eval_mean_steps_to_capture",
+    "eval_success_episode_count",
+]
 
 
 def checkpoint_payload(
@@ -78,6 +93,8 @@ def train_dqn(config: dict[str, Any]) -> Path:
     best_score = float("-inf")
     global_step = 0
     metrics_rows: list[dict[str, Any]] = []
+    metrics_path = run_dir / "metrics.csv"
+    metrics_path.write_text("", encoding="utf-8")
 
     for episode_index in range(total_episodes):
         curriculum_enabled = bool(config["training"].get("curriculum", False))
@@ -198,7 +215,7 @@ def train_dqn(config: dict[str, Any]) -> Path:
                 )
 
         metrics_rows.append(row)
-        write_csv(metrics_rows, run_dir / "metrics.csv")
+        append_csv_row(row, metrics_path, fields=DQN_METRIC_FIELDS)
 
     if not (run_dir / "best.pt").exists():
         save_checkpoint(
