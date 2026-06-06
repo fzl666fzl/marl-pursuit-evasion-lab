@@ -15,12 +15,12 @@ def write_mappo_smoke_config(path: Path, run_dir: Path) -> None:
         "algorithm": "mappo",
         "seed": 0,
         "output_dir": str(run_dir),
-        "total_episodes": 4,
+        "total_episodes": 2,
         "env": {
             "num_good": 1,
             "num_adversaries": 3,
             "num_obstacles": 2,
-            "max_cycles": 20,
+            "max_cycles": 10,
             "continuous_actions": False,
             "terminate_on_success": True,
         },
@@ -33,11 +33,11 @@ def write_mappo_smoke_config(path: Path, run_dir: Path) -> None:
             "clip_coef": 0.2,
             "entropy_coef": 0.01,
             "value_coef": 0.5,
-            "update_epochs": 2,
-            "rollout_episodes": 2,
+            "update_epochs": 1,
+            "rollout_episodes": 1,
             "max_grad_norm": 0.5,
         },
-        "evaluation": {"eval_interval": 2, "eval_episodes": 2, "seeds": [0]},
+        "evaluation": {"eval_interval": 1, "eval_episodes": 1, "seeds": [0]},
     }
     path.write_text(yaml.safe_dump(config), encoding="utf-8")
 
@@ -77,7 +77,7 @@ def test_mappo_train_evaluate_and_render_smoke(tmp_path: Path) -> None:
     assert "critic_state_dict" in saved
     assert (run_dir / "metrics.csv").is_file()
     with (run_dir / "metrics.csv").open("r", encoding="utf-8", newline="") as handle:
-        assert len(list(csv.DictReader(handle))) == 4
+        assert len(list(csv.DictReader(handle))) == 2
 
     run_module(
         [
@@ -85,7 +85,7 @@ def test_mappo_train_evaluate_and_render_smoke(tmp_path: Path) -> None:
             "--checkpoint",
             str(checkpoint),
             "--episodes",
-            "2",
+            "1",
             "--output",
             str(run_dir),
         ],

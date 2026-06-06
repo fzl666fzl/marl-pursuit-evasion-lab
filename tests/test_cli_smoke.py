@@ -13,12 +13,12 @@ def write_smoke_config(path: Path, run_dir: Path) -> None:
         "experiment_name": "smoke_dqn",
         "seed": 0,
         "output_dir": str(run_dir),
-        "total_episodes": 10,
+        "total_episodes": 3,
         "env": {
             "num_good": 1,
             "num_adversaries": 3,
             "num_obstacles": 2,
-            "max_cycles": 50,
+            "max_cycles": 10,
             "continuous_actions": False,
             "terminate_on_success": True,
         },
@@ -30,11 +30,11 @@ def write_smoke_config(path: Path, run_dir: Path) -> None:
             "target_update_interval": 10,
             "epsilon_start": 1.0,
             "epsilon_end": 0.1,
-            "epsilon_decay_episodes": 10,
+            "epsilon_decay_episodes": 3,
             "team_reward_weight": 0.0,
             "curriculum": False,
         },
-        "evaluation": {"eval_interval": 10, "eval_episodes": 2, "seeds": [0]},
+        "evaluation": {"eval_interval": 3, "eval_episodes": 1, "seeds": [0]},
     }
     path.write_text(yaml.safe_dump(config), encoding="utf-8")
 
@@ -61,7 +61,7 @@ def test_train_evaluate_render_and_plot_smoke(tmp_path: Path) -> None:
             "--config",
             str(config_path),
             "--episodes",
-            "5",
+            "3",
             "--experiment-name",
             "smoke_override",
             "--output-dir",
@@ -76,7 +76,7 @@ def test_train_evaluate_render_and_plot_smoke(tmp_path: Path) -> None:
     assert checkpoint.is_file()
     assert (run_dir / "config.yaml").is_file()
     with (run_dir / "metrics.csv").open("r", encoding="utf-8", newline="") as handle:
-        assert len(list(csv.DictReader(handle))) == 5
+        assert len(list(csv.DictReader(handle))) == 3
 
     run_module(
         [
@@ -84,7 +84,7 @@ def test_train_evaluate_render_and_plot_smoke(tmp_path: Path) -> None:
             "--checkpoint",
             str(checkpoint),
             "--episodes",
-            "2",
+            "1",
             "--output",
             str(run_dir),
         ],

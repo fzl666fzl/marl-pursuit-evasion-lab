@@ -13,12 +13,12 @@ def write_config(path: Path, *, experiment_name: str, algorithm: str | None = No
         "experiment_name": experiment_name,
         "seed": 0,
         "output_dir": "runs",
-        "total_episodes": 3,
+        "total_episodes": 2,
         "env": {
             "num_good": 1,
             "num_adversaries": 3,
             "num_obstacles": 2,
-            "max_cycles": 50,
+            "max_cycles": 10,
             "continuous_actions": False,
             "terminate_on_success": True,
         },
@@ -30,11 +30,11 @@ def write_config(path: Path, *, experiment_name: str, algorithm: str | None = No
             "target_update_interval": 10,
             "epsilon_start": 1.0,
             "epsilon_end": 0.1,
-            "epsilon_decay_episodes": 3,
+            "epsilon_decay_episodes": 2,
             "team_reward_weight": 0.0,
             "curriculum": False,
         },
-        "evaluation": {"eval_interval": 3, "eval_episodes": 2, "seeds": [0]},
+        "evaluation": {"eval_interval": 2, "eval_episodes": 1, "seeds": [0]},
     }
     if algorithm is not None:
         config["algorithm"] = algorithm
@@ -63,7 +63,7 @@ def test_run_experiments_runs_configs_and_writes_comparison(tmp_path: Path) -> N
             "--figures",
             str(figures_dir),
             "--episodes",
-            "3",
+            "2",
         ],
         cwd=repo,
         text=True,

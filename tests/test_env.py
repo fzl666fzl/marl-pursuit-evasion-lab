@@ -38,6 +38,32 @@ def test_random_policy_runs_five_complete_episodes() -> None:
         env.close()
 
 
+def test_action_space_seeding_does_not_lockstep_all_agents() -> None:
+    env = make_env(seed=0)
+    try:
+        env.reset(seed=0)
+        sampled_steps = [random_actions(env) for _ in range(5)]
+
+        assert any(len(set(actions.values())) > 1 for actions in sampled_steps)
+    finally:
+        env.close()
+
+
+def test_action_space_seeding_remains_reproducible() -> None:
+    env_a = make_env(seed=7)
+    env_b = make_env(seed=7)
+    try:
+        env_a.reset(seed=7)
+        env_b.reset(seed=7)
+        samples_a = [random_actions(env_a) for _ in range(5)]
+        samples_b = [random_actions(env_b) for _ in range(5)]
+
+        assert samples_a == samples_b
+    finally:
+        env_a.close()
+        env_b.close()
+
+
 def test_curriculum_stage_uses_episode_thirds() -> None:
     total = 3000
 

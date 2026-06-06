@@ -31,8 +31,8 @@ def make_env(
     if curriculum_stage is not None:
         apply_curriculum_stage(env, int(curriculum_stage))
     if seed is not None:
-        for agent in env.possible_agents:
-            env.action_space(agent).seed(seed)
+        for index, agent in enumerate(env.possible_agents):
+            env.action_space(agent).seed(int(seed) + index)
     return env
 
 

@@ -125,8 +125,8 @@ MAPPO 是策略梯度类多智能体算法，项目中实现为：
 
 验证结果：
 
-- `tests/test_env.py`：5 passed
-- 全量测试：18 passed
+- `tests/test_env.py`：7 passed
+- 全量测试：20 passed
 
 额外 smoke：
 
