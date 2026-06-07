@@ -147,10 +147,12 @@ Actual: `2 passed in 20.66s`.
 
 Actual: `23 passed in 235.24s`.
 
-- [ ] **Step 3: Commit and push**
+- [x] **Step 3: Commit and push**
 
 ```powershell
 git add src/pursuit_lab/evaluate_runs.py tests/test_evaluate_runs.py README.md PROJECT_AUDIT_REPORT.md PROJECT_INTERVIEW_GUIDE.md docs/superpowers/plans/2026-06-07-best-checkpoint-rerun.md
 git commit -m "feat: add best checkpoint batch evaluation"
 git push
 ```
+
+Actual commit: `a387ae6 feat: add best checkpoint batch evaluation`, pushed to `origin/main`.
