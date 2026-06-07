@@ -123,71 +123,105 @@ MAPPO 是策略梯度类多智能体算法，项目中实现为：
 - 普通 DQN 和改进 DQN 的最终网络在 10 局评估中都只有 0.10，但训练中途并非一直差：普通 DQN 中途最高 eval capture rate 到 0.60，改进 DQN 在课程 stage 0 到过 0.70。
 - 改进 DQN 的课程切换已在日志中验证：约第 1000 局后进入 stage 1，约第 2000 局后进入 stage 2。
 - MAPPO 最终 10 局评估达到 0.70，是本轮完整重跑里最终表现最好的方法。
-- 当前 `eval_summary.json` 记录的是最终网络的表现，而不是 `best.pt` 的表现；因此后续更严谨的做法是同时评估 final checkpoint 和 best checkpoint。
+- 当前 `eval_summary.json` 记录的是最终网络的表现，而不是 `best.pt` 的表现；因此本次又补充了第 6 节的 best checkpoint 长评估。
 
-## 6. 当前优点
+## 6. Post-seedfix best checkpoint 复评
+
+为避免只看最终网络低估中途更好的策略，本次新增批量复评工具，对 `runs/post_seedfix_full_20260606_164815/` 下所有包含 `best.pt` 的实验目录做统一评估。随机基线没有 checkpoint，因此不在这张表里。
+
+命令：
+
+```powershell
+.\.venv\Scripts\python -m pursuit_lab.evaluate_runs --runs runs\post_seedfix_full_20260606_164815 --output runs\post_seedfix_best_eval_500_20260607_030815 --episodes 500
+```
+
+100 局快速复评结果：
+
+| Experiment | Episodes | Capture Rate | Mean Reward | Mean Steps To Capture | Success Count |
+|---|---:|---:|---:|---:|---:|
+| dqn_baseline | 100 | 0.31 | 9.3 | 16.77 | 31 |
+| dqn_curriculum_team_reward | 100 | 0.40 | 12.3 | 18.35 | 40 |
+| mappo_baseline | 100 | 0.60 | 18.3 | 19.83 | 60 |
+
+500 局长复评结果：
+
+| Experiment | Episodes | Capture Rate | Mean Reward | Mean Steps To Capture | Success Count |
+|---|---:|---:|---:|---:|---:|
+| dqn_baseline | 500 | 0.288 | 8.76 | 15.61 | 144 |
+| dqn_curriculum_team_reward | 500 | 0.380 | 11.46 | 16.57 | 190 |
+| mappo_baseline | 500 | 0.556 | 17.04 | 19.40 | 278 |
+
+解读：
+
+- 500 局 best checkpoint 复评比最终 10 局 `eval_summary.json` 更稳定，更适合作为当前答辩和简历中的主结果。
+- 普通 DQN 的最终网络 10 局成功率是 0.10，但 `best.pt` 500 局成功率是 0.288，说明只看 final network 会低估 DQN 训练中途的较好策略。
+- 改进 DQN 的 `best.pt` 500 局成功率为 0.380，高于普通 DQN 的 0.288，说明课程学习 + 团队奖励混合在 best checkpoint 口径下有正向收益。
+- MAPPO 的 `best.pt` 500 局成功率为 0.556，仍然是三种学习策略中最强；但它低于最终 10 局的 0.70，也说明 10 局评估方差较大。
+
+## 7. 当前优点
 
 - 项目结构清晰，训练、评估、绘图、渲染路径完整。
 - DQN 实现包含 replay buffer、target network、epsilon 衰减等关键机制。
 - MAPPO 实现包含 actor、critic、GAE、clip loss，具备基本 CTDE 思路。
 - 团队奖励只用于训练 transition，评估仍使用原始环境奖励，避免评估指标作弊。
 - 测试覆盖了核心模块、CLI smoke、MAPPO smoke、渲染和指标逻辑。
+- 新增 `pursuit_lab.evaluate_runs`，可以批量复评一次训练目录中的所有 `best.pt`，并输出统一对比 CSV。
 
-## 7. 当前局限
+## 8. 当前局限
 
 - 训练只使用单个训练 seed，统计稳定性不足。
 - `max_cycles=50` 偏短，可能影响 DQN 与 MAPPO 的公平比较。
 - 当前 trainable 配置最终评估只有 10 局，方差较大；随机基线是 50 局，评估 episode 数不完全一致。
-- 当前 `eval_summary.json` 评估最终网络，不评估 `best.pt`，容易低估中途表现更好的 DQN checkpoint。
+- 当前已补充 `best.pt` 复评，但 final checkpoint 与 best checkpoint 的评估 episode 数仍不完全一致。
 - 修复后的改进 DQN 在课程早期有更高 eval 表现，但迁移到完整环境后最终回落，课程学习收益还需要更严格消融验证。
 - DQN 是 Independent DQN，共享参数但没有显式通信或集中式价值分解。
 - MAPPO 当前实现适合展示原理，但还不是高度调参后的强基线。
 
-## 8. 最值得做的 3 个后续改进
+## 9. 最值得做的 3 个后续改进
 
-1. 对 final checkpoint 和 `best.pt` 都做 100 或 500 局评估，避免只看最终网络导致误判。
+1. 固化统一评估协议：对 random、final checkpoint 和 `best.pt` 都使用相同的 500 局 seeds，避免 episode 数不一致导致误判。
 2. 做多训练 seed 对照，例如 seed 0、1、2，各自训练普通 DQN、改进 DQN、MAPPO，再汇总均值和方差。
 3. 做 episode length 消融实验，对比 `max_cycles=50/75/100`，判断当前 50 步是否限制了策略表现。
 
-## 9. 本次修改与验证
+## 10. 本次修改与验证
 
-修改文件：
+本轮新增/更新文件：
 
-- `src/pursuit_lab/envs.py`
-- `src/pursuit_lab/mappo.py`
-- `src/pursuit_lab/metrics.py`
-- `src/pursuit_lab/train.py`
-- `tests/test_env.py`
-- `tests/test_rewards_and_metrics.py`
+- `src/pursuit_lab/evaluate_runs.py`
+- `tests/test_evaluate_runs.py`
+- `README.md`
 - `PROJECT_AUDIT_REPORT.md`
 - `PROJECT_INTERVIEW_GUIDE.md`
+- `docs/superpowers/plans/2026-06-07-best-checkpoint-rerun.md`
 
 验证命令：
 
 ```powershell
+.\.venv\Scripts\python -m pytest tests\test_evaluate_runs.py -q
 .\.venv\Scripts\python -m pytest tests\test_env.py -q
 .\.venv\Scripts\python -m pytest tests\test_rewards_and_metrics.py::test_append_csv_row_writes_header_once_and_appends_rows -q
 .\.venv\Scripts\python -m pytest tests\test_cli_smoke.py::test_train_evaluate_render_and_plot_smoke -q
 .\.venv\Scripts\python -m pytest tests\test_mappo_cli.py -q
 .\.venv\Scripts\python -m pytest -q
+.\.venv\Scripts\python -m pursuit_lab.evaluate_runs --runs runs\post_seedfix_full_20260606_164815 --output runs\post_seedfix_best_eval_500_20260607_030815 --episodes 500
 ```
 
 验证结果：
 
-- `tests/test_env.py`：7 passed
-- `test_append_csv_row_writes_header_once_and_appends_rows`：1 passed
-- DQN / evaluate / render / plot smoke：1 passed
-- MAPPO CLI smoke：1 passed
-- 全量测试：21 passed in 211.11s
+- 本轮 `tests/test_evaluate_runs.py`：2 passed in 20.66s
+- 本轮全量测试：23 passed in 235.24s
+- best checkpoint 500 局长复评：DQN 0.288，改进 DQN 0.380，MAPPO 0.556
 
 额外 smoke：
 
 - random + DQN smoke：通过，写入临时目录
 - curriculum DQN smoke：通过，写入临时目录
 - MAPPO smoke：通过，写入临时目录
+- best checkpoint 100 局复评：DQN 0.31，改进 DQN 0.40，MAPPO 0.60
 
 未执行事项：
 
 - 未做多训练 seed 统计。
-- 未做 100/500 局 post-seedfix best checkpoint 复评。
+- 未重新训练智能逃跑者；当前逃跑者仍是随机策略。
+- 未对 final checkpoint 做同样 500 局复评。
 - 未覆盖已有 `runs/`、`figures/`、`videos/` 中的历史结果。

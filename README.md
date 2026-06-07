@@ -78,6 +78,12 @@ python -m pursuit_lab.train --config configs/dqn_curriculum_team_reward.yaml
 python -m pursuit_lab.evaluate --checkpoint runs/dqn_curriculum_team_reward/best.pt --episodes 50
 ```
 
+批量复评某次完整训练下所有 `best.pt` checkpoint：
+
+```powershell
+python -m pursuit_lab.evaluate_runs --runs runs/post_seedfix_full_20260606_164815 --output runs/post_seedfix_best_eval_500 --episodes 500
+```
+
 生成 GIF：
 
 ```powershell
